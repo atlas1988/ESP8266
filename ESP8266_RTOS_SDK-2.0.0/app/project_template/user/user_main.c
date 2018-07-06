@@ -23,7 +23,7 @@
  */
 
 #include "esp_common.h"
-
+#include "user_config.h"
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -72,6 +72,17 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
+void uart0_config(void){
+	UART_ConfigTypeDef uart_config;
+	uart_config.baud_rate	 = BIT_RATE_115200;
+	uart_config.data_bits	  = UART_WordLength_8b;
+	uart_config.parity			= USART_Parity_None;
+	uart_config.stop_bits	  = USART_StopBits_1;
+	uart_config.flow_ctrl	   = USART_HardwareFlowControl_None;
+	uart_config.UART_RxFlowThresh = 120;
+	uart_config.UART_InverseMask = UART_None_Inverse;
+	UART_ParamConfig(UART0, &uart_config);
+}
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -80,6 +91,8 @@ uint32 user_rf_cal_sector_set(void)
 *******************************************************************************/
 void user_init(void)
 {
+	uart0_config();
     printf("SDK version:%s\n", system_get_sdk_version());
+	printf("-----lx hello word! -----");
 }
 

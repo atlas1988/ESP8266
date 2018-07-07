@@ -87,8 +87,8 @@ void uart0_config(void){
 void task2(void *pvParameters){
 	int8 i = 0;
 	SpiFlashOpResult err_flash =SPI_FLASH_RESULT_ERR;
-	uint32 buf[4] = {0};
-	uint32 data[4] = {9,2,3,4};
+	uint8 buf[4] = {0};
+	uint8 data[4] = {9,2,3,4};
 	printf("ESP8266 chip ID:0x%x\n", system_get_chip_id());
 	while(i <9){
 		i++;

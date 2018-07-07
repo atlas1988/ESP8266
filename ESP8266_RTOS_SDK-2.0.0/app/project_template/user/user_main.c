@@ -83,6 +83,19 @@ void uart0_config(void){
 	uart_config.UART_InverseMask = UART_None_Inverse;
 	UART_ParamConfig(UART0, &uart_config);
 }
+//create task for get chip info 
+void task2(void *pvParameters){
+	int8 i = 0;
+	printf("ESP8266 chip ID:0x%x\n", system_get_chip_id());
+	while(i <9){
+		i++;
+		printf("----lx task 2 run times:0x%x\n",i);
+		/* 允许其它发送任务执行。 taskYIELD()通知调度器现在就切换到其它任务，而不必等到本任务的时
+间片耗尽 */
+		taskYIELD();
+	}
+	vTaskDelete(NULL);
+}
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -93,6 +106,9 @@ void user_init(void)
 {
 	uart0_config();
     printf("SDK version:%s\n", system_get_sdk_version());
-	printf("-----lx hello word! -----");
+	/* station + soft-AP mode */
+	wifi_set_opmode(STATIONAP_MODE);
+	printf("-----lx hello word! -----\n");
+	xTaskCreate(task2, "tsk2", 256, NULL, 2, NULL);
 }
 

@@ -24,6 +24,15 @@
 
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
+#include "esp_common.h"
 #include "uart.h"
+// config wifi station
+#define CONFIG_WIFI_STATION_V01
+// config wifi AP mode
+#define CONFIG_WIFI_SOFT_AP_V01
+#if defined(CONFIG_WIFI_STATION_V01)||defined(CONFIG_WIFI_SOFT_AP_V01)
+#include "m_wifi_config.h"
 #endif
+
+#endif//__USER_CONFIG_H__
 

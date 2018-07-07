@@ -95,6 +95,13 @@ config wifi wifi station scan hook/callback
 //Before use the function must setting  TODO: add user’s own code here....
 wifi_station_scan(NULL,mWifi_station_scan_router_done);
 
+get the specify wifiAP info/RSSI
+#define DEMO_AP_SSID “DEMO_AP"
+struct scan_config config;
+memset(&config, 0, sizeof(config));
+config.ssid = DEMO_AP_SSID;//specify the wifiap name/SSID
+wifi_station_scan(&config,scan_done);
+
 */
 void mWifi_station_scan_router_done(void *arg, STATUS status){
 	uint8 ssid[33];

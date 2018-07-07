@@ -86,10 +86,26 @@ void uart0_config(void){
 //create task for get chip info 
 void task2(void *pvParameters){
 	int8 i = 0;
+	SpiFlashOpResult err_flash =SPI_FLASH_RESULT_ERR;
+	uint32 buf[4] = {0};
+	uint32 data[4] = {9,2,3,4};
 	printf("ESP8266 chip ID:0x%x\n", system_get_chip_id());
 	while(i <9){
 		i++;
+		data[0] = i;
 		printf("----lx task 2 run times:0x%x\n",i);
+		//read data from flash
+		err_flash = mSpi_flash_read(0x91000,buf,4);
+		if(err_flash != SPI_FLASH_RESULT_OK){
+			printf("---lx read flash faild\n");
+		}
+		printf("---lx  sec:%02x%02x%02x%02x\r\n", buf[0], buf[1], buf[2], buf[3]);
+		//write date to flash
+		err_flash = mSpi_flash_write(0x91000,data,4);
+		if(err_flash != SPI_FLASH_RESULT_OK){
+			printf("---lx write flash faild\n");
+		}
+
 		/* 允许其它发送任务执行。 taskYIELD()通知调度器现在就切换到其它任务，而不必等到本任务的时
 间片耗尽 */
 		taskYIELD();

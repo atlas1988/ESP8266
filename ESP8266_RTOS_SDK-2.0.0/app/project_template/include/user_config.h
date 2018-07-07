@@ -30,6 +30,13 @@
 #define CONFIG_WIFI_STATION_V01
 // config wifi AP mode
 #define CONFIG_WIFI_SOFT_AP_V01
+//use spi flash read/write
+#define CONFIG_USE_SPI_FLASH
+
+#if defined(CONFIG_USE_SPI_FLASH)
+#include "m_spi_flash.h"
+#endif//CONFIG_USE_SPI_FLASH
+
 #if defined(CONFIG_WIFI_STATION_V01)||defined(CONFIG_WIFI_SOFT_AP_V01)
 #include "m_wifi_config.h"
 #endif

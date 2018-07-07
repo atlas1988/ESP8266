@@ -49,16 +49,18 @@ echo "boot mode: $boot"
 echo ""
 
 echo "STEP 2: choose bin generate(0=eagle.flash.bin+eagle.irom0text.bin, 1=user1.bin, 2=user2.bin)"
-echo "enter (0/1/2, default 0):"
+echo "enter (0/1/2, default 1):"
 read input
 
 if [ -z "$input" ]; then
-    if [ $boot != none ]; then
-    	boot=none
-	echo "ignore boot"
+    if [ $boot == none ]; then
+    	app=0
+	echo "choose no boot before"
+	echo "generate bin: eagle.flash.bin+eagle.irom0text.bin"
+    else
+	app=1
+        echo "generate bin: user1.bin"
     fi
-    app=0
-    echo "generate bin: eagle.flash.bin+eagle.irom0text.bin"
 elif [ $input == 1 ]; then
     if [ $boot == none ]; then
     	app=0
@@ -77,13 +79,22 @@ elif [ $input == 2 ]; then
     	app=2
     	echo "generate bin: user2.bin"
     fi
+ elif [ $input == 0 ]; then
+    if [ $boot == none ]; then
+    	app=0
+	echo "choose no boot before"
+	echo "generate bin: eagle.flash.bin+eagle.irom0text.bin"
+    else
+    	app=0
+    	echo "generate bin: eagle.flash.bin+eagle.irom0text.bin"
+    fi
 else
     if [ $boot != none ]; then
     	boot=none
 	echo "ignore boot"
     fi
-    app=0
-    echo "generate bin: eagle.flash.bin+eagle.irom0text.bin"
+    app=1
+    echo "generate bin: user1.bin"
 fi
 
 echo ""
@@ -108,19 +119,19 @@ echo "spi speed: $spi_speed MHz"
 echo ""
 
 echo "STEP 4: choose spi mode(0=QIO, 1=QOUT, 2=DIO, 3=DOUT)"
-echo "enter (0/1/2/3, default 0):"
+echo "enter (0/1/2/3, default 3):"
 read input
 
 if [ -z "$input" ]; then
-    spi_mode=QIO
+    spi_mode=DOUT
 elif [ $input == 1 ]; then
     spi_mode=QOUT
 elif [ $input == 2 ]; then
     spi_mode=DIO
-elif [ $input == 3 ]; then
-    spi_mode=DOUT
-else
+elif [ $input == 0 ]; then
     spi_mode=QIO
+else
+    spi_mode=DOUT
 fi
 
 echo "spi mode: $spi_mode"
@@ -136,13 +147,13 @@ echo "    6=4096KB(1024KB+1024KB)"
 echo "    7=4096KB(2048KB+2048KB) not support ,just for compatible with nodeMCU board"
 echo "    8=8192KB(1024KB+1024KB)"
 echo "    9=16384KB(1024KB+1024KB)"
-echo "enter (0/2/3/4/5/6/7/8/9, default 0):"
+echo "enter (0/2/3/4/5/6/7/8/9, default 6):"
 read input
 
 if [ -z "$input" ]; then
-    spi_size_map=0
-    echo "spi size: 512KB"
-    echo "spi ota map:  256KB + 256KB"
+    spi_size_map=6
+    echo "spi size: 4096KB"
+    echo "spi ota map:  1024KB + 1024KB"
 elif [ $input == 2 ]; then
     spi_size_map=2
     echo "spi size: 1024KB"
@@ -159,10 +170,6 @@ elif [ $input == 5 ]; then
     spi_size_map=5
     echo "spi size: 2048KB"
     echo "spi ota map:  1024KB + 1024KB"
-elif [ $input == 6 ]; then
-    spi_size_map=6
-    echo "spi size: 4096KB"
-    echo "spi ota map:  1024KB + 1024KB"
 elif [ $input == 7 ]; then
     spi_size_map=7
     echo"not support ,just for compatible with nodeMCU board"
@@ -175,10 +182,14 @@ elif [ $input == 9 ]; then
     spi_size_map=9
     echo "spi size: 16384KB"
     echo "spi ota map:  1024KB + 1024KB"
-else
+elif [ $input == 0 ]; then
     spi_size_map=0
     echo "spi size: 512KB"
     echo "spi ota map:  256KB + 256KB"
+else
+    spi_size_map=6
+    echo "spi size: 4096KB"
+    echo "spi ota map:  1024KB + 1024KB"
 fi
 
 echo ""

@@ -96,6 +96,18 @@ void task2(void *pvParameters){
 	}
 	vTaskDelete(NULL);
 }
+// setting wifi connect info
+#define WIFI_AP_SSID_DEFUALT "atlas_2"
+#define WIFI_AP_SSID_PASSWORD_DEFUALT "180606040"
+
+void mWifi_connect_ap(void){
+	struct station_config * config = (struct station_config *)zalloc(sizeof(struct station_config));
+	sprintf(config->ssid, WIFI_AP_SSID_DEFUALT);
+	sprintf(config->password, WIFI_AP_SSID_PASSWORD_DEFUALT);
+	wifi_station_set_config(config);
+	free(config);
+	wifi_station_connect();
+}
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -109,6 +121,7 @@ void user_init(void)
 	/* station + soft-AP mode */
 	wifi_set_opmode(STATIONAP_MODE);
 	printf("-----lx hello word! -----\n");
+	mWifi_connect_ap();
 	xTaskCreate(task2, "tsk2", 256, NULL, 2, NULL);
 }
 

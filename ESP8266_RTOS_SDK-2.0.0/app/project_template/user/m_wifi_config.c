@@ -90,6 +90,36 @@ void mWifi_set_macaddr(void){
 }
 #endif
 
+/*
+config wifi wifi station scan hook/callback 
+//Before use the function must setting  TODO: add user’s own code here....
+wifi_station_scan(NULL,mWifi_station_scan_router_done);
+
+*/
+void mWifi_station_scan_router_done(void *arg, STATUS status){
+	uint8 ssid[33];
+	char temp[128];
+	printf("----lx mWifi_station_scan_done----\n");
+	if (status == OK){
+		struct bss_info *bss_link = (struct bss_info *)arg;
+		while (bss_link != NULL)
+		{
+			memset(ssid, 0, 33);
+			if (strlen(bss_link->ssid) <= 32)
+				memcpy(ssid, bss_link->ssid, strlen(bss_link->ssid));
+			else
+				memcpy(ssid, bss_link->ssid, 32);
+			
+			printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n",bss_link->authmode, ssid, bss_link->rssi,\
+					MAC2STR(bss_link->bssid),bss_link->channel);
+			bss_link = bss_link->next.stqe_next;
+		}
+	}else{
+		printf("scan fail !!!\r\n");
+	}
+
+}
+
 
 
 /*
@@ -103,6 +133,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
 	printf("event %x\n", evt->event_id);
 	switch (evt->event_id) {
 		case EVENT_STAMODE_CONNECTED:
+			//wifi_station_scan(NULL,mWifi_station_scan_router_done);
 			printf("connect to ssid %s, channel %d\n",evt->event_info.connected.ssid,evt->event_info.connected.channel);
 			break;
 		case EVENT_STAMODE_DISCONNECTED:
@@ -144,5 +175,6 @@ void mWifi_mode_init(void){
 	// TODO: add user’s own code here....
 	wifi_set_event_handler_cb(wifi_handle_event_cb);
 #endif//
+
 }
 

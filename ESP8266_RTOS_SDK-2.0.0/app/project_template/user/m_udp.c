@@ -16,7 +16,7 @@ int mWifi_udp_socket_create(struct sockaddr_in * server_addr,socklen_t addr_len)
 //	struct sockaddr_in server_addr;
 //	memset(server_addr, 0, sizeof(server_addr));
 	int retry = 0;
-	int32 sock_fd;
+	int sock_fd;
 	server_addr->sin_family = AF_INET;
 	server_addr->sin_addr.s_addr = INADDR_ANY;
 	server_addr->sin_port = htons(UDP_LOCAL_PORT);
@@ -59,7 +59,7 @@ int mWifi_udp_data_receive(int sock_fd,void *udp_msg ,size_t msg_len,
 	int nNetTimeout = 10000;// 100s unit:ms
 	
 	setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&nNetTimeout,sizeof(int));//set sockt
-	*fromlen = sizeof(struct sockaddr_in); // must setting ths fromlen
+	*fromlen = sizeof(struct sockaddr_in); // **** must setting ths fromlen
 	ret = recvfrom(sock_fd, (uint8 *)udp_msg, msg_len, 0,from,fromlen);
 	if (ret > 0) {
 		printf("ESP8266 UDP task > recv %d Bytes \n",ret);
@@ -70,6 +70,11 @@ int mWifi_udp_data_receive(int sock_fd,void *udp_msg ,size_t msg_len,
 }
 //transmit the UDP data
 int mWifi_udp_data_send(int sock_fd,void *udp_msg ,size_t msg_len,struct sockaddr *to, socklen_t tolen){
+	// **** must setting ths tolen
+	if(tolen == 0){
+		tolen = sizeof(struct sockaddr_in);
+		printf("mWifi_udp_data_send modify tolen from 0 to %d\n",tolen);
+	}
 	return sendto(sock_fd,(uint8*)udp_msg, msg_len, 0, to,tolen);
 }
 

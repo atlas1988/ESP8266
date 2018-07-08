@@ -128,7 +128,48 @@ void mWifi_station_scan_router_done(void *arg, STATUS status){
 }
 
 
+//create udp task to deal with udp
+#if defined(CONFIG_USE_UDP)
+void udp_task(void *pvParameters){
+	int8 i = 0,ret = 0;
+	uint8 udp_msg[UDP_DATA_LEN];
+	LOCAL int32 sSock_fd;
+	struct sockaddr_in server_addr;
+	struct sockaddr_in client_addr;
+	socklen_t client_addrlen;
 
+	printf("--lx %s enter\n", __PRETTY_FUNCTION__);
+	vTaskDelay(1000/portTICK_RATE_MS);// delay 1000ms
+
+	memset(&server_addr, 0, sizeof(server_addr));
+	//create udp socket
+	sSock_fd = mWifi_udp_socket_create(&server_addr, sizeof(server_addr));
+	//Bind a local port
+	mWifi_udp_socket_bind(sSock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+	while(1){
+		i++;
+		//clear old data
+		memset(udp_msg, 0, UDP_DATA_LEN);
+		memset(&client_addr, 0, sizeof(client_addr));
+
+		//Receive  the UDP data
+		ret = mWifi_udp_data_receive(sSock_fd,udp_msg ,UDP_DATA_LEN,(struct sockaddr *)&client_addr, &client_addrlen);
+		if (ret > 0) {
+			printf("ESP8266 UDP task > recv %d Bytes from %s, Port %d\n",ret,inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+			printf("recv data udp_msg:%s\n",udp_msg);
+			//send the UDP data back this just for test,you can change the client_addr client_addrlen--this must be setted
+			mWifi_udp_data_send(sSock_fd,udp_msg ,ret,(struct sockaddr *)&client_addr, client_addrlen);
+		}
+
+		/* 允许其它发送任务执行。 taskYIELD()通知调度器现在就切换到其它任务，而不必等到本任务的时
+间片耗尽 */
+		//taskYIELD();
+	}
+
+	close(sSock_fd);
+	vTaskDelete(NULL);
+}
+#endif//CONFIG_USE_UDP
 /*
 config wifi connect event hook/callback 
 //Before use the function must setting  TODO: add user’s own code here....
@@ -141,6 +182,9 @@ void wifi_handle_event_cb(System_Event_t *evt)
 	switch (evt->event_id) {
 		case EVENT_STAMODE_CONNECTED:
 			//wifi_station_scan(NULL,mWifi_station_scan_router_done);
+			#if defined(CONFIG_USE_UDP)
+			xTaskCreate(udp_task, "udp", 256, NULL, 2, NULL);
+			#endif
 			printf("connect to ssid %s, channel %d\n",evt->event_info.connected.ssid,evt->event_info.connected.channel);
 			break;
 		case EVENT_STAMODE_DISCONNECTED:
@@ -171,8 +215,10 @@ void mWifi_mode_init(void){
 	/* station + soft-AP mode */
 	wifi_set_opmode(WIFI_MODE_CONFIG);
 	//config soft ap mode 
+#if defined(CONFIG_WIFI_SOFT_AP_V01)
 	mWifi_soft_ap_init();
-	
+#endif//CONFIG_WIFI_SOFT_AP_V01
+
 	mWifi_connect_ap();
 
 #if defined(CONFIG_GET_WIFI_MAC_ADDR)

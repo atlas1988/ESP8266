@@ -122,7 +122,7 @@ DDEFINES +=				\
 #
 # Required for each makefile to inherit from the parent
 #
-
+INCLUDES += -I $(SDK_PATH)/include/lwip/lwip
 INCLUDES := $(INCLUDES) -I $(PDIR)include
 sinclude $(SDK_PATH)/Makefile
 

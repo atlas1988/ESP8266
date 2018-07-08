@@ -29,9 +29,29 @@
 // config wifi station
 #define CONFIG_WIFI_STATION_V01
 // config wifi AP mode
-#define CONFIG_WIFI_SOFT_AP_V01
+//#define CONFIG_WIFI_SOFT_AP_V01
 //use spi flash read/write
 #define CONFIG_USE_SPI_FLASH
+//use time RTC
+//#define CONFIG_USE_TIME_RTC
+//use wifi udp
+#define CONFIG_USE_UDP
+//use wifi TCP
+#define CONFIG_USE_TCP_CLIENT
+#define CONFIG_USE_TCP_SERVER
+
+
+#if defined(CONFIG_USE_UDP)
+#include "m_udp.h"
+#endif//CONFIG_USE_UDP
+
+#if defined(CONFIG_USE_TCP)
+#include "m_tcp.h"
+#endif//CONFIG_USE_TCP
+
+#if defined(CONFIG_USE_TIME_RTC)
+#include "m_time.h"
+#endif//CONDIG_USE_TIME_RTC
 
 #if defined(CONFIG_USE_SPI_FLASH)
 #include "m_spi_flash.h"

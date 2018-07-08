@@ -35,8 +35,9 @@
 //use time RTC
 //#define CONFIG_USE_TIME_RTC
 //use wifi udp
-#define CONFIG_USE_UDP
+//#define CONFIG_USE_UDP
 //use wifi TCP
+#define CONFIG_USE_TCP
 #define CONFIG_USE_TCP_CLIENT
 #define CONFIG_USE_TCP_SERVER
 

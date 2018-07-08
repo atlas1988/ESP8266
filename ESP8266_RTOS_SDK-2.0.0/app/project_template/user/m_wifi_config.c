@@ -170,6 +170,40 @@ void udp_task(void *pvParameters){
 	vTaskDelete(NULL);
 }
 #endif//CONFIG_USE_UDP
+
+#if defined(CONFIG_USE_TCP_CLIENT)
+#define TCP_CLIEN_BUF_LEN 100
+void tcp_client_task(void *pvParameters){
+	int sock_fd = 0,ret = 0;
+	char buf[TCP_CLIEN_BUF_LEN] ={"fadfafdafd"};
+	struct sockaddr_in server_ip;
+
+	printf("--lx %s enter\n", __PRETTY_FUNCTION__);
+	vTaskDelay(5000/portTICK_RATE_MS);// delay 1000ms
+	// 1----Create a tcp socket
+	sock_fd = mWifi_tcp_socket_create();
+
+	// 2----Create a TCP connection
+	ret = mWifi_tcp_client_connect_server(sock_fd,&server_ip);
+	while(1){
+		// 3---client send data packets via TCP communication
+		ret = mWifi_tcp_client_send_data(sock_fd,buf,TCP_CLIEN_BUF_LEN);
+
+		// 4---TCP client Receive data packets via TCP communication
+		ret = mWifi_tcp_client_receive_data(sock_fd,buf,TCP_CLIEN_BUF_LEN);
+		buf[ret] = 0;
+		printf("receive bytes:%d %s \n",ret,buf);
+
+			/* 允许其它发送任务执行。 taskYIELD()通知调度器现在就切换到其它任务，而不必等到本任务的时
+间片耗尽 */
+		//taskYIELD();
+	}
+	close(sock_fd);
+	vTaskDelete(NULL);
+
+}
+#endif//CONFIG_USE_TCP_CLIENT
+
 /*
 config wifi connect event hook/callback 
 //Before use the function must setting  TODO: add user’s own code here....
@@ -184,6 +218,9 @@ void wifi_handle_event_cb(System_Event_t *evt)
 			//wifi_station_scan(NULL,mWifi_station_scan_router_done);
 			#if defined(CONFIG_USE_UDP)
 			xTaskCreate(udp_task, "udp", 256, NULL, 2, NULL);
+			#endif
+			#if defined(CONFIG_USE_TCP_CLIENT)
+			xTaskCreate(tcp_client_task, "tcp client", 256, NULL, 2, NULL);
 			#endif
 			printf("connect to ssid %s, channel %d\n",evt->event_info.connected.ssid,evt->event_info.connected.channel);
 			break;

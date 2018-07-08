@@ -179,7 +179,7 @@ void tcp_client_task(void *pvParameters){
 	struct sockaddr_in server_ip;
 
 	printf("--lx %s enter\n", __PRETTY_FUNCTION__);
-	vTaskDelay(5000/portTICK_RATE_MS);// delay 1000ms
+	vTaskDelay(10000/portTICK_RATE_MS);// delay 1000ms
 	// 1----Create a tcp socket
 	sock_fd = mWifi_tcp_socket_create();
 
@@ -204,6 +204,50 @@ void tcp_client_task(void *pvParameters){
 }
 #endif//CONFIG_USE_TCP_CLIENT
 
+#if defined(CONFIG_USE_TCP_SERVER)
+#define TCP_SERVER_BUF_LEN 100
+#define LISTEN_MAX_CLIENTS 100
+void tcp_server_task(void *pvParameters){
+	int server_fd = 0,client_fd = 0,ret = 0;
+	char buf[TCP_SERVER_BUF_LEN] ={"fadfafdafd"};
+	struct sockaddr_in server_addr,client_addr;
+	socklen_t addr_len;
+
+	printf("--lx %s enter\n", __PRETTY_FUNCTION__);
+	vTaskDelay(10000/portTICK_RATE_MS);// delay 1000ms
+	// 1----Create a tcp socket Establish a TCP server
+	server_fd = mWifi_tcp_server_socket_create();
+
+	// 2----bind the socket with the local port.
+	ret = mWifi_tcp_server_socket_bind(server_fd, &server_addr);
+	
+	// 3----Listen to the local connection Establish TCP server interception
+	ret = mWifi_tcp_server_listen(server_fd,LISTEN_MAX_CLIENTS);
+
+	// 4----TCP server wait for connect read data from connected client
+	client_fd = mWifi_tcp_server_accept(server_fd,&client_addr,&addr_len);
+	//this just for test function(only accept&deal 1),if want accept more,must modify this
+	while(1){
+
+		// 5----TCP client Receive data packets via TCP communication
+		ret = mWifi_tcp_server_receive_data(client_fd,buf,TCP_SERVER_BUF_LEN);
+		buf[ret] = 0;
+		printf("receive bytes:%d %s \n",ret,buf);
+		
+		// 6---client send data packets via TCP communication
+		ret = mWifi_tcp_client_send_data(client_fd,buf,TCP_SERVER_BUF_LEN);
+
+			/* 允许其它发送任务执行。 taskYIELD()通知调度器现在就切换到其它任务，而不必等到本任务的时
+间片耗尽 */
+		//taskYIELD();
+	}
+	close(server_fd);
+	close(client_fd);
+	vTaskDelete(NULL);
+
+}
+#endif//CONFIG_USE_TCP_SERVER
+
 /*
 config wifi connect event hook/callback 
 //Before use the function must setting  TODO: add user’s own code here....
@@ -218,10 +262,13 @@ void wifi_handle_event_cb(System_Event_t *evt)
 			//wifi_station_scan(NULL,mWifi_station_scan_router_done);
 			#if defined(CONFIG_USE_UDP)
 			xTaskCreate(udp_task, "udp", 256, NULL, 2, NULL);
-			#endif
+			#endif//CONFIG_USE_UDP
 			#if defined(CONFIG_USE_TCP_CLIENT)
 			xTaskCreate(tcp_client_task, "tcp client", 256, NULL, 2, NULL);
-			#endif
+			#endif//CONFIG_USE_TCP_CLIENT
+			#if defined(CONFIG_USE_TCP_SERVER)
+			xTaskCreate(tcp_server_task, "tcp server", 256, NULL, 2, NULL);
+			#endif//CONFIG_USE_TCP_SERVER
 			printf("connect to ssid %s, channel %d\n",evt->event_info.connected.ssid,evt->event_info.connected.channel);
 			break;
 		case EVENT_STAMODE_DISCONNECTED:

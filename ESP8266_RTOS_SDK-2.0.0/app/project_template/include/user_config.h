@@ -38,8 +38,14 @@
 //#define CONFIG_USE_UDP
 //use wifi TCP
 #define CONFIG_USE_TCP
-//#define CONFIG_USE_TCP_CLIENT
-#define CONFIG_USE_TCP_SERVER
+#define CONFIG_USE_TCP_CLIENT
+//#define CONFIG_USE_TCP_SERVER
+//usr OTA upgrade
+#define CONFIG_USE_OTA
+
+#if defined(CONFIG_USE_OTA)
+#include "m_ota.h"
+#endif//CONFIG_USE_OTA
 
 
 #if defined(CONFIG_USE_UDP)

@@ -293,6 +293,27 @@ void wifi_handle_event_cb(System_Event_t *evt)
 	}
 }
 
+// Determines whether the IP address has been obtained
+bool is_get_ip_addr(void){
+	int ret=0,retry = 0;
+	struct ip_info ipconfig;
+
+	do{
+		/* check the IP address or net connection state*/
+		wifi_get_ip_info(STATION_IF, &ipconfig);
+		if (ipconfig.ip.addr == 0) {
+			printf("is_get_ip_addr retry:%d\n",retry);
+			vTaskDelay(1000/portTICK_RATE_MS);
+		}else{
+			printf("get_ip_addr ok port:%d\n",ipconfig.ip.addr);
+			return 1;
+		}
+		retry++;
+	}while(retry <=3);// retry 3 times
+
+	return 0;
+}
+
 //wifi init
 void mWifi_mode_init(void){
 	printf("-----lx mWifi_mode_init -----\n");

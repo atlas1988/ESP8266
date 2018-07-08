@@ -125,7 +125,7 @@ void user_init(void)
 	uart0_config();
     printf("SDK version:%s\n", system_get_sdk_version());
 	mWifi_mode_init();
-
-	xTaskCreate(task2, "tsk2", 256, NULL, 2, NULL);
+	//xTaskCreate(udp_task, "udp", 256, NULL, 2, NULL);
+//	xTaskCreate(task2, "tsk2", 256, NULL, 2, NULL);
 }
 

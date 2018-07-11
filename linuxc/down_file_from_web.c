@@ -34,7 +34,14 @@ void get_url(char* url){
     memset(GET,0,BUF_SIZE);
     strcpy(myurl,url);
 	// Separate the address(host) and the file name(GET)
-	for(pHost = myurl;*pHost != '/' && *pHost != '\0';++pHost);
+	for(pHost = myurl; *pHost != '\0' && *pHost != '/' ;++pHost){
+		if(*(pHost+1) != '\0' && *(pHost+1)  == '/'){
+			if(*(pHost+2) != '\0' && *(pHost+2)  == '/'){
+				pHost += 2;//skip "//"
+				pTemp = pHost + 1;
+			}
+		}
+	}
 	// save the file name in GET
 	if((int)(pHost-myurl) == strlen(myurl))
 	{
@@ -47,8 +54,11 @@ void get_url(char* url){
 	
 	//Separate the address(host) and the file name(GET)
 	*pHost = '\0';
-	// save the server ip in host
-	strcpy(host,myurl);
+	// save the server ip in host skip https:// and http://
+	if(pTemp != NULL)
+		strcpy(host,pTemp);
+	else
+		strcpy(host,myurl);
 	
     // http Header process web URL
     bzero(request,sizeof(request));

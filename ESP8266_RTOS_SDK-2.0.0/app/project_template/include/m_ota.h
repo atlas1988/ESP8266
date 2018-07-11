@@ -12,6 +12,7 @@
 #define UDP_LOCAL_PORT 1200
 #define UDP_DATA_LEN 100
 
+void ota_upgrade_task(void *pvParameters);
 
 #endif //__MY_UDP_H__
 

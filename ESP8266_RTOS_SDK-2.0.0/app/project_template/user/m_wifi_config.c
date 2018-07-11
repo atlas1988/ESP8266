@@ -269,6 +269,9 @@ void wifi_handle_event_cb(System_Event_t *evt)
 			#if defined(CONFIG_USE_TCP_SERVER)
 			xTaskCreate(tcp_server_task, "tcp server", 256, NULL, 2, NULL);
 			#endif//CONFIG_USE_TCP_SERVER
+			#if defined(CONFIG_USE_OTA)
+			xTaskCreate(ota_upgrade_task, "ota upgrade task", 380, NULL, 2, NULL);
+			#endif//CONFIG_USE_OTA
 			printf("connect to ssid %s, channel %d\n",evt->event_info.connected.ssid,evt->event_info.connected.channel);
 			break;
 		case EVENT_STAMODE_DISCONNECTED:

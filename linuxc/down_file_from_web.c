@@ -22,6 +22,7 @@ void get_url(char* url){
     char request[BUF_SIZE];
     static char text[BUF_SIZE];
     int i,j,ret = 0;
+	unsigned int file_size = 0,file_rec = 0;
     int fd = open("user1.bin",O_CREAT | O_WRONLY | O_TRUNC,0777);
     if(fd == -1){
         printf("OPen error\n");
@@ -101,16 +102,28 @@ void get_url(char* url){
 		//i ++;
 		pHeader++;
 	}
-	printf("----lx Parse the HTTP header::\n%s\n",request);
+	//get file size 
+	pHeader = strstr(request,"Content-Length:");
+	if (pHeader != NULL)
+	{
+		pHeader = strchr(pHeader,':');
+		pHeader++;
+		file_size = strtoul(pHeader,NULL,10);
+	}
+	printf("----lx Parse the HTTP header::%d byte\n%s\n",file_size,request);
     // client receive data from server
     memset(text,0,BUF_SIZE);
-    while(1){
+    for(file_rec = 0;;){
         int rec;
         rec = recv(sock_fd,text,BUF_SIZE,0);
         if(rec <= 0)
             break;
+		else
+			file_rec += rec;
         write(fd,text,rec);
         printf("receive success Message:%d\n",rec);
+		if(file_size == file_rec)
+			break;
     }
 
     close(fd);

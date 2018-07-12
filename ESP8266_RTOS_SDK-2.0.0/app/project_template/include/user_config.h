@@ -38,7 +38,7 @@
 //#define CONFIG_USE_UDP
 //use wifi TCP
 #define CONFIG_USE_TCP
-#define CONFIG_USE_TCP_CLIENT
+//#define CONFIG_USE_TCP_CLIENT
 //#define CONFIG_USE_TCP_SERVER
 //usr OTA upgrade
 #define CONFIG_USE_OTA

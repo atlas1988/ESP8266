@@ -36,7 +36,7 @@ int mWifi_tcp_client_connect_server(int sock_fd,struct sockaddr_in *remote_ip){
 	bzero(remote_ip, sizeof(struct sockaddr_in));
 	remote_ip->sin_family = AF_INET;
 	remote_ip->sin_addr.s_addr = inet_addr(REMOTE_TCP_SERVER_IP);
-	remote_ip->sin_port = htons(REMOTE_TCP_SERVER_PORT);
+	remote_ip->sin_port = htons(80);//REMOTE_TCP_SERVER_PORT
 
 	do{
 		ret = connect(sock_fd, (struct sockaddr *)remote_ip, sizeof(struct	sockaddr));

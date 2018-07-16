@@ -15,7 +15,7 @@
 #define OTA_UPGRADE_BIN1_NAME	"user1.4096.new.6.bin"
 #define OTA_UPGRADE_BIN2_NAME	"user2.4096.new.6.bin"
 #define OTA_SERVER_URL_IP		"192.168.2.244"
-#define OTA_HTTP_HEADER  "GET /user1.4096.new.6.bin HTTP/1.1\r\n"\
+#define OTA_HTTP_HEADER  "GET /user2.4096.new.6.bin HTTP/1.1\r\n"\
 			            "Host: 192.168.2.244\r\n"\
 			            "Connection: Keep-Alive\r\n"\
 			            "Content-Type: application/octet-stream\r\n"\
@@ -36,16 +36,19 @@ void ota_upgrade_time_task(void *pvParameters){
 	vTaskDelete(NULL);
 }
 
-#define UPGRADE_BUF_LEN 256
+#define UPGRADE_BUF_LEN 1024
 void ota_upgrade_task(void *pvParameters){
 	int sock_fd = 0,ret = 0 ,retry = 0;
-	u32_t upgrade_addr = 0,erease_addr = 0;
+	volatile u32_t upgrade_addr = 0,i=0;
+	u32_t erease_addr = 0,updated_addr = 0;
 	SpiFlashOpResult err_flash =SPI_FLASH_RESULT_ERR;
 	//char upgrade_buf[UPGRADE_BUF_LEN] ={0};
 	char *upgrade_url;
 	char *file_name = 0 ;
 	char *pHeader = 0;
 	long file_size = 0 , file_rec = 0;
+	char save[4]={0};
+	char extra = 0;
 	struct sockaddr_in server_ip;
 
 	printf("--lx %s enter\n", __PRETTY_FUNCTION__);
@@ -101,7 +104,7 @@ void ota_upgrade_task(void *pvParameters){
 	// check which userbin is used.0x00 : UPGRADE_FW_BIN1, i.e. user1.bin @return 0x01 : UPGRADE_FW_BIN2, i.e. user2.bin
 	if(!system_upgrade_userbin_check()){
 		upgrade_addr = OTA_UPGRADE_BIN2_ADDR;
-		file_name = OTA_UPGRADE_BIN1_NAME;
+		file_name = OTA_UPGRADE_BIN2_NAME;
 	}else{
 		upgrade_addr = OTA_UPGRADE_BIN1_ADDR;
 		file_name = OTA_UPGRADE_BIN1_NAME;
@@ -141,6 +144,7 @@ void ota_upgrade_task(void *pvParameters){
 		//i ++;
 		pHeader++;
 	}
+	printf("recive ret=%d http header=%d \n",pHeader-upgrade_url,strstr(upgrade_url,"\r\n\r\n")-upgrade_url+4);
 	//get file size 
 	pHeader = strstr(upgrade_url,"Content-Length:");
 	if (pHeader != NULL)
@@ -149,13 +153,17 @@ void ota_upgrade_task(void *pvParameters){
 		pHeader++;
 		file_size = strtol(pHeader,NULL,10);
 	}
-	//printf("----lx Parse the HTTP header::%d byte\n%s\n",file_size,upgrade_url);
+		//printf("----lx Parse the HTTP header::%d byte\n%s\n",file_size,upgrade_url);
 	printf("----lx Parse the HTTP header::%d byte\n",file_size);
-	// clear buf
-	bzero(upgrade_url,sizeof(upgrade_url));
-   for(file_rec = 0;;){
+	updated_addr =upgrade_addr;
+#if 1  
+	for(file_rec = 0;;){
 	    int rec;
-	    rec = recv(sock_fd,upgrade_url,UPGRADE_BUF_LEN,0);
+		// clear buf
+		bzero(upgrade_url,sizeof(upgrade_url));
+   		// aglin 4 bytes
+		memcpy(upgrade_url, save, extra);
+	    rec = read(sock_fd,upgrade_url + extra,UPGRADE_BUF_LEN - extra);
 	    if(rec <= 0)
 	        break;
 		else
@@ -163,33 +171,61 @@ void ota_upgrade_task(void *pvParameters){
 	   // save the recive code int dst addr write(fd,text,rec);
 	   //// write the new firmware into flash by spi_flash_write 	err_flash = mSpi_flash_write(upgrade_addr,upgrade_buf,rec);
 		// TODO: fit in the data
-		if((upgrade_addr + rec)/SPI_FLASH_SEC_SIZE != erease_addr){
-			erease_addr =(upgrade_addr + rec)/SPI_FLASH_SEC_SIZE;
+		if((upgrade_addr + file_rec)/SPI_FLASH_SEC_SIZE != erease_addr){
+			erease_addr =(upgrade_addr + file_rec)/SPI_FLASH_SEC_SIZE;
 			printf("erase sector %x \n",erease_addr);
 			err_flash = spi_flash_erase_sector(erease_addr);//erase flash sector(N*4K/4096)
 			if(err_flash != SPI_FLASH_RESULT_OK){
 				printf("---lx spi_flash_erase_sector faild\n");
 			}
 		}
-		err_flash = spi_flash_write(upgrade_addr, (uint32 *)upgrade_url,rec);
+
+		rec += extra;
+		extra = rec & 0x03;
+		rec -= extra;
+
+		if(extra<=4)
+		   memcpy(save, upgrade_url + rec, extra);
+		else
+		   printf("ERR3:arr_overflow,%u,%d\n",__LINE__,extra);
+
+		err_flash = spi_flash_write(updated_addr, (uint32 *)upgrade_url,rec);
 		if(err_flash != SPI_FLASH_RESULT_OK){
 			printf("---lx write flash faild\n");
 		}
-		upgrade_addr += rec;
-	    printf("receive success Message:%d\n",rec);
+		updated_addr = upgrade_addr + file_rec - extra;
+	    printf("receive success Message:%d upgrade_addr=%x file_rec=%x\n",rec,updated_addr,file_rec);
+		if(0){
+			printf("--receive Message:%s\n",upgrade_url);
+		}
 		if(file_size == file_rec){
 			printf("successful rec %d bytes\n",file_rec);
 			break;
 		}
 	}
-   
+#else // read data from flash just for test
+	updated_addr =upgrade_addr;
+	for(file_rec = 0;;){
+		int rec;
+		printf("---lx read data from flash!\n");
+		rec = spi_flash_read(updated_addr,(uint32 *)upgrade_url,UPGRADE_BUF_LEN);
+		for(i=0;i<UPGRADE_BUF_LEN;i++){
+			if(i%16 ==0)
+				printf("\n");
+			printf("%02x",*(upgrade_url+i));
+		}
+		updated_addr += UPGRADE_BUF_LEN;
+		
+		break;
+	}
+#endif   
 	// upgrade successfull ,set the flag
 	if(file_size == file_rec){
 		system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
-		printf("----lx update addr:%d--:%s ok!\n",upgrade_addr,file_name);
+		printf("----lx update addr:%x--:%s ok!\n",upgrade_addr,file_name);
 	}else{
 		system_upgrade_flag_set(UPGRADE_FLAG_IDLE);
-		printf("----lx update addr:%d--:%s failed!\n",upgrade_addr,file_name);
+		printf("----lx update addr:%dx--:%s failed!\n",upgrade_addr,file_name);
 	}
 	// reboot device
 	system_upgrade_reboot();

@@ -147,13 +147,13 @@ echo "    6=4096KB(1024KB+1024KB)"
 echo "    7=4096KB(2048KB+2048KB) not support ,just for compatible with nodeMCU board"
 echo "    8=8192KB(1024KB+1024KB)"
 echo "    9=16384KB(1024KB+1024KB)"
-echo "enter (0/2/3/4/5/6/7/8/9, default 6):"
+echo "enter (0/2/3/4/5/6/7/8/9, default 4):"
 read input
 
 if [ -z "$input" ]; then
-    spi_size_map=6
+    spi_size_map=4
     echo "spi size: 4096KB"
-    echo "spi ota map:  1024KB + 1024KB"
+    echo "spi ota map:  512KB + 512KB"
 elif [ $input == 2 ]; then
     spi_size_map=2
     echo "spi size: 1024KB"
@@ -169,6 +169,10 @@ elif [ $input == 4 ]; then
 elif [ $input == 5 ]; then
     spi_size_map=5
     echo "spi size: 2048KB"
+    echo "spi ota map:  1024KB + 1024KB"
+elif [ $input == 6 ]; then
+    spi_size_map=6
+    echo "spi size: 4096KB"
     echo "spi ota map:  1024KB + 1024KB"
 elif [ $input == 7 ]; then
     spi_size_map=7
@@ -187,9 +191,9 @@ elif [ $input == 0 ]; then
     echo "spi size: 512KB"
     echo "spi ota map:  256KB + 256KB"
 else
-    spi_size_map=6
+    spi_size_map=4
     echo "spi size: 4096KB"
-    echo "spi ota map:  1024KB + 1024KB"
+    echo "spi ota map:  512KB + 512KB"
 fi
 
 echo ""

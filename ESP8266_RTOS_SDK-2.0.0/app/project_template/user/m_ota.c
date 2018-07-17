@@ -12,10 +12,10 @@
 
 #define OTA_UPGRADE_BIN1_ADDR	0x1000
 #define OTA_UPGRADE_BIN2_ADDR	0x81000
-#define OTA_UPGRADE_BIN1_NAME	"user1.4096.new.6.bin"
-#define OTA_UPGRADE_BIN2_NAME	"user2.4096.new.6.bin"
+#define OTA_UPGRADE_BIN1_NAME	"user1.4096.new.4.bin"
+#define OTA_UPGRADE_BIN2_NAME	"user2.4096.new.4.bin"
 #define OTA_SERVER_URL_IP		"192.168.2.244"
-#define OTA_HTTP_HEADER  "GET /user2.4096.new.6.bin HTTP/1.1\r\n"\
+#define OTA_HTTP_HEADER  "GET /user2.4096.new.4.bin HTTP/1.1\r\n"\
 			            "Host: 192.168.2.244\r\n"\
 			            "Connection: Keep-Alive\r\n"\
 			            "Content-Type: application/octet-stream\r\n"\
